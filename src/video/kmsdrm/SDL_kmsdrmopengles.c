@@ -155,20 +155,18 @@ KMSDRM_GLES_SwapWindow(_THIS, SDL_Window * window) {
     ret = KMSDRM_drmModePageFlip(vdata->drm_fd, displaydata->crtc_id, fb_info->fb_id,
                                  DRM_MODE_PAGE_FLIP_EVENT, &wdata->waiting_for_flip);
 
-    if (_this->egl_data->egl_swapinterval == 1) {
-        /* Queue page flip at vsync */
+    /* Queue page flip at vsync */
 
-        if (ret == 0) {
-            wdata->waiting_for_flip = SDL_TRUE;
-        } else {
-            SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Could not queue pageflip: %d", ret);
-        }
+    if (ret == 0) {
+        wdata->waiting_for_flip = SDL_TRUE;
+    } else {
+        SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Could not queue pageflip: %d", ret);
+    }
 
-        /* Wait immediately for vsync (as if we only had two buffers), for low input-lag scenarios.
-           Run your SDL2 program with "SDL_KMSDRM_DOUBLE_BUFFER=1 <program_name>" to enable this. */
-        if (wdata->double_buffer) {
-            KMSDRM_WaitPageFlip(_this, wdata, -1);
-        }
+    /* Wait immediately for vsync (as if we only had two buffers), for low input-lag scenarios.
+       Run your SDL2 program with "SDL_HINT_VIDEO_DOUBLE_BUFFER=1 <program_name>" to enable this. */
+    if (wdata->double_buffer) {
+        KMSDRM_WaitPageFlip(_this, wdata, timeout);
     }
 
     return 0;
